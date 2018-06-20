@@ -1,0 +1,10 @@
+ext {
+    enableDeployGate = false
+
+    releaseAlias = 'androiddebugkey'
+    releaseStorePassword = 'android'
+    releaseKeyPassword = 'android'
+    releaseStorePath = '../debug.keystore'
+
+    cloudFunctionEndpoint=''
+}

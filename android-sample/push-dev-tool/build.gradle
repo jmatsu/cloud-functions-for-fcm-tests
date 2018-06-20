@@ -1,0 +1,121 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+
+android {
+    signingConfigs {
+        debug {
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+            storeFile file('../debug.keystore')
+            storePassword 'android'
+        }
+        release {
+            keyAlias releaseAlias
+            keyPassword releaseKeyPassword
+            storeFile file(releaseStorePath)
+            storePassword releaseStorePassword
+        }
+    }
+
+    compileSdkVersion 27
+
+    defaultConfig {
+        applicationId "io.github.jmatsu.cf_dev_tool"
+
+        minSdkVersion 14
+        targetSdkVersion 27
+
+        versionCode 1
+        versionName "1.0"
+
+        vectorDrawables.useSupportLibrary = true
+
+        buildConfigField("String", "CLOUD_FUNCTION_ENDPOINT", "\"$cloudFunctionEndpoint\"")
+
+        manifestPlaceholders = [
+                devToolPermission : devTool['permission']
+        ]
+
+        buildConfigField("String", "DEV_TOOL_PERMISSION", "\"${devTool['permission']}\"")
+
+        devTool['keys'].each {
+            buildConfigField("String", "DEV_TOOL_KEY_${it.key}", "\"key.${it.value}\"")
+        }
+
+        devTool['actions'].each {
+            buildConfigField("String", "DEV_TOOL_ACTION_${it.key}", "\"action.${it.value}\"")
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.deploygate:sdk:4.1.0'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    def koroutineVersion = '0.23.3'
+
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$koroutineVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$koroutineVersion"
+
+    implementation "com.android.support:appcompat-v7:$supportLibraryVersion"
+    implementation "com.android.support:animated-vector-drawable:$supportLibraryVersion"
+    implementation "com.android.support:support-v4:$supportLibraryVersion"
+    implementation "com.android.support:support-compat:$supportLibraryVersion"
+    implementation "com.android.support:support-media-compat:$supportLibraryVersion"
+
+    def okHttpVersion = '3.9.1'
+
+    implementation "com.squareup.okhttp3:okhttp:$okHttpVersion"
+
+    def retrofitVersion = '2.3.0'
+
+    implementation "com.squareup.retrofit2:retrofit:$retrofitVersion"
+    implementation "com.squareup.retrofit2:converter-gson:$retrofitVersion"
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'ru.gildor.coroutines:kotlin-coroutines-retrofit:0.11.0'
+
+    implementation 'com.google.firebase:firebase-core:16.0.1'
+
+    // Firebase Auth
+    implementation 'com.google.firebase:firebase-auth:16.0.2'
+
+    // Google SignIn
+    implementation 'com.google.android.gms:play-services-auth:15.0.1'
+}
+
+if (enableDeployGate) {
+    apply plugin: 'deploygate'
+
+    deploygate {
+        userName = deployGateUserName
+        token = deployGateApiToken
+
+        apks {
+            debug {
+                message = 'debug build'
+                distributionKey = deployGateDistributionKeyForPusher
+            }
+
+            release {
+                message = 'release buid'
+                distributionKey = deployGateDistributionKeyForPusher
+            }
+        }
+    }
+}
+
+apply plugin: 'com.google.gms.google-services'
